@@ -2,152 +2,164 @@ using UnityEngine;
 
 public class BanditAI : MonoBehaviour
 {
-    // === Ustawienia ruchu ===
+    [Header("Ustawienia ruchu")]
     public float walkSpeed = 2f;
     public float chaseSpeed = 4f;
-    public float patrolDistance = 5f;
 
-    // === Ustawienia wykrywania ===
+    [Header("Ustawienia walki")]
     public float lookRadius = 7f;
-    public float attackRange = 1.5f;
-    public float attackCooldown = 1f;
+    public float attackRange = 1.8f; // Bliski zasiÄ™g (jak wczeÅ›niej)
+    public float attackCooldown = 1.5f;
+    public int damageAmount = 10;
 
-    // === Zmienne techniczne ===
+    public Transform attackPoint;    // Puste miejsce przed Magiem
+    public float attackArea = 0.5f;  // WielkoÅ›Ä‡ zasiÄ™gu ciosu
+    public LayerMask playerLayer;    // Ustaw na "Player"
+
+    [Header("Granice")]
+    public Transform lewaGranica;
+    public Transform prawaGranica;
+
     private Rigidbody2D rb;
     private Animator anim;
     private Transform playerTarget;
-    private Vector3 startPosition;
-    private bool facingRight = true;
     private bool isAttacking = false;
-
-    // === Parametry Animatora Bandyty (poprawne u¿ycie AnimState) ===
-    private const string ANIM_STATE = "AnimState";
-    private const int STATE_IDLE = 0;
-    private const int STATE_RUN = 1;
-    private const string ANIM_ATTACK = "Attack";
+    private bool idzieWPrawo = true;
+    private float nextAttackTime = 0f;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        startPosition = transform.position;
 
-        // ZnajdŸ gracza (tag "Player")
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            playerTarget = player.transform;
-        }
+        if (player != null) playerTarget = player.transform;
     }
 
-    // =================================================================
-    // PE£NA I POPRAWNA LOGIKA UPDATE()
-    // =================================================================
     void Update()
     {
-        if (playerTarget == null) return;
-        if (rb == null) return;
+        // 1. Podstawowe sprawdzenie czy obiekty istniejÄ…
+        if (playerTarget == null || rb == null) return;
 
-        float distanceToPlayer = Mathf.Abs(playerTarget.position.x - transform.position.x);
+        // 2. NOWOÅšÄ†: Sprawdzenie czy gracz juÅ¼ nie Å¼yje
+        PlayerHealth playerHealth = playerTarget.GetComponent<PlayerHealth>();
+        if (playerHealth != null && playerHealth.isDead)
+        {
+            StopMoving(); // Mag przestaje chodziÄ‡
+            return;       // Wychodzimy z funkcji, mag nic wiÄ™cej nie robi
+        }
 
-        // 1. Sprawdzenie, czy gracz jest w zasiêgu wzroku (Look Radius)
+        // 3. Sprawdzenie czy mag Å¼yje (Twoje poprzednie)
+        if (GetComponent<EnemyHealth>() != null && GetComponent<EnemyHealth>().currentHealth <= 0) return;
+
+        // --- Reszta Twojego kodu bez zmian ---
+        float distanceToPlayer = Vector2.Distance(transform.position, playerTarget.position);
+
         if (distanceToPlayer <= lookRadius)
         {
-            // A. Czy gracz jest w zasiêgu ataku?
             if (distanceToPlayer <= attackRange)
             {
-                AttackPlayer();
+                if (Time.time >= nextAttackTime)
+                {
+                    AttackPlayer();
+                    nextAttackTime = Time.time + attackCooldown;
+                }
+                else if (!isAttacking)
+                {
+                    StopMoving();
+                }
             }
-            // B. Gracz jest widoczny, ale za daleko, wiêc go goñ
             else
             {
                 ChasePlayer();
             }
         }
-        // 2. Gracz jest za daleko, Bandyta patrolowuje
         else
         {
             Patrol();
         }
     }
-    // =================================================================
 
-    void Patrol()
+    void AttackPlayer()
     {
-        // Blokada: Jeœli Bandyta jest zajêty atakiem, nie ruszaj siê
-        if (isAttacking)
+        isAttacking = true;
+        StopMoving();
+
+        // Odpalamy animacjÄ™ ataku (upewnij siÄ™, Å¼e w Animatorze masz Trigger "Attack")
+        anim.SetTrigger("Attack");
+
+        // WywoÅ‚ujemy zadanie obraÅ¼eÅ„ z opÃ³Åºnieniem, Å¼eby pasowaÅ‚o do machniÄ™cia rÄ™kÄ…
+        Invoke("DealDamage", 0.4f);
+        Invoke("ResetAttack", attackCooldown);
+    }
+
+    void DealDamage()
+    {
+        // Zabezpieczenie: jeÅ›li zapomniaÅ‚eÅ› przypisaÄ‡ attackPoint w Inspektorze
+        if (attackPoint == null)
         {
-            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
-            anim.SetInteger(ANIM_STATE, STATE_IDLE);
+            Debug.LogError("Mag nie ma przypisanego AttackPoint!");
             return;
         }
 
-        // Sprawdzenie, czy doszed³ do granicy patrolowania
-        bool boundaryReached = (transform.position.x >= startPosition.x + patrolDistance && facingRight) ||
-                               (transform.position.x <= startPosition.x - patrolDistance && !facingRight);
+        Collider2D[] hitPlayers = Physics2D.OverlapCircleAll(attackPoint.position, attackArea, playerLayer);
 
-        if (boundaryReached)
+        foreach (Collider2D playerCollider in hitPlayers)
         {
-            Flip();
-        }
+            // Szukamy skryptu PlayerHealth
+            PlayerHealth health = playerCollider.GetComponent<PlayerHealth>();
 
-        // Ruch
-        float direction = facingRight ? 1f : -1f;
-        rb.linearVelocity = new Vector2(direction * walkSpeed, rb.linearVelocity.y);
-        anim.SetInteger(ANIM_STATE, STATE_RUN);
+            if (health != null)
+            {
+                health.TakeDamage(1);
+            }
+        }
+    }
+
+    void ResetAttack()
+    {
+        isAttacking = false;
+    }
+
+    void StopMoving()
+    {
+        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+        anim.SetInteger("AnimState", 0);
+    }
+
+    // --- RUCH (PATROL I POGOÅƒ) ---
+
+    void Patrol()
+    {
+        if (idzieWPrawo && transform.position.x >= prawaGranica.position.x) idzieWPrawo = false;
+        else if (!idzieWPrawo && transform.position.x <= lewaGranica.position.x) idzieWPrawo = true;
+
+        transform.localScale = idzieWPrawo ? new Vector3(1, 1, 1) : new Vector3(-1, 1, 1);
+        rb.linearVelocity = new Vector2((idzieWPrawo ? 1f : -1f) * walkSpeed, rb.linearVelocity.y);
+        anim.SetInteger("AnimState", 1);
     }
 
     void ChasePlayer()
     {
-        // Blokada: Jeœli Bandyta jest zajêty atakiem, nie goñ
-        if (isAttacking)
+        if (isAttacking) return;
+        float direction = (playerTarget.position.x > transform.position.x) ? 1f : -1f;
+
+        if ((direction > 0 && transform.position.x >= prawaGranica.position.x) ||
+            (direction < 0 && transform.position.x <= lewaGranica.position.x))
         {
-            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
-            anim.SetInteger(ANIM_STATE, STATE_IDLE);
+            StopMoving();
             return;
         }
 
-        float direction = (playerTarget.position.x > transform.position.x) ? 1f : -1f;
-
-        // Odwrócenie
-        if ((direction > 0 && !facingRight) || (direction < 0 && facingRight))
-        {
-            Flip();
-        }
-
-        // Ruch
+        transform.localScale = (direction > 0) ? new Vector3(1, 1, 1) : new Vector3(-1, 1, 1);
         rb.linearVelocity = new Vector2(direction * chaseSpeed, rb.linearVelocity.y);
-        anim.SetInteger(ANIM_STATE, STATE_RUN);
+        anim.SetInteger("AnimState", 1);
     }
 
-    void AttackPlayer()
+    // Rysowanie zasiÄ™gu ataku w edytorze
+    void OnDrawGizmosSelected()
     {
-        if (isAttacking) return;
-
-        isAttacking = true;
-
-        // Bandyta siê zatrzymuje do ataku
-        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
-        anim.SetInteger(ANIM_STATE, STATE_IDLE);
-
-        // Aktywacja animacji ataku
-        anim.SetTrigger(ANIM_ATTACK);
-
-        // Cooldown
-        Invoke("ResetAttack", attackCooldown);
-    }
-
-    void Flip()
-    {
-        facingRight = !facingRight;
-        Vector3 scale = transform.localScale;
-        scale.x *= -1;
-        transform.localScale = scale;
-    }
-
-    // Funkcja resetuj¹ca flagê ataku po cooldownie
-    void ResetAttack()
-    {
-        isAttacking = false;
+        if (attackPoint == null) return;
+        Gizmos.DrawWireSphere(attackPoint.position, attackArea);
     }
 }
