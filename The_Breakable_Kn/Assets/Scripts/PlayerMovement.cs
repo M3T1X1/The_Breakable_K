@@ -57,6 +57,8 @@ public class PlayerMovement : MonoBehaviour
 
     public void OnAttack(InputAction.CallbackContext context)
     {
+        if (!this.enabled) return;
+
         if (GetComponent<PlayerHealth>() != null && GetComponent<PlayerHealth>().isDead) return;
 
         if (context.performed && Time.time >= nextAttackTime)
@@ -109,17 +111,18 @@ public class PlayerMovement : MonoBehaviour
     // --- LOGIKA WALKI (GŁÓWNA FUNKCJA) ---
     private void Attack()
     {
-        // 1. Odpal animację
+        // To zabezpieczenie musi tu zostać, aby uniknąć błędów w konsoli
+        if (attackPoint == null)
+        {
+            return;
+        }
+
         anim.SetTrigger("Attack1");
 
-        // 2. Sprawdź czy w obiekcie attackPoint są wrogowie
-        // Tworzymy niewidzialne koło o zasięgu attackRange
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
 
-        // 3. Zadaj obrażenia każdemu trafionemu wrogowi
         foreach (Collider2D enemy in hitEnemies)
         {
-            // Szukamy skryptu EnemyHealth na Magu
             EnemyHealth enemyHealth = enemy.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
             {

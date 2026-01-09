@@ -1,6 +1,7 @@
 using UnityEngine;
+using System.Collections;
 
-public class BanditAI : MonoBehaviour
+public class KingBossAI : MonoBehaviour
 {
     [Header("Ustawienia ruchu")]
     public float walkSpeed = 2f;
@@ -8,21 +9,17 @@ public class BanditAI : MonoBehaviour
 
     [Header("Ustawienia walki")]
     public float lookRadius = 7f;
-    public float attackRange = 1.8f;
-    public float attackCooldown = 1.5f;
-    public int damageAmount = 10;
+    public float attackRange = 2.5f; // Król ma wiêkszy miecz, wiêc zasiêg wiêkszy
+    public float timeBetweenComboAttacks = 0.6f; // Szybkie ciosy
+    public float heavyAttackCooldown = 2.5f;    // Odpoczynek po mocnym ciosie
 
     public Transform attackPoint;
-    public float attackArea = 0.5f;
+    public float attackArea = 1.0f;  // Wiêkszy obszar ciosu dla bosa
     public LayerMask playerLayer;
 
     [Header("Granice")]
     public Transform lewaGranica;
     public Transform prawaGranica;
-
-    // --- NOWE ZMIENNE DO ZAPAMIÄ˜TANIA POZYCJI ---
-    private float pozycjaLewejGranicy;
-    private float pozycjaPrawejGranicy;
 
     private Rigidbody2D rb;
     private Animator anim;
@@ -30,40 +27,25 @@ public class BanditAI : MonoBehaviour
     private bool isAttacking = false;
     private bool idzieWPrawo = true;
     private float nextAttackTime = 0f;
+    private int comboCount = 0; // Licznik ciosów
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null) playerTarget = player.transform;
-
-        // --- KLUCZOWA POPRAWKA ---
-        // ZapamiÄ™tujemy pozycjÄ™ X granic w skali Å›wiata na samym poczÄ…tku.
-        // Nawet jeÅ›li granice bÄ™dÄ… siÄ™ ruszaÄ‡ z Magiem, te liczby zostanÄ… staÅ‚e.
-        if (lewaGranica != null && prawaGranica != null)
-        {
-            pozycjaLewejGranicy = lewaGranica.position.x;
-            pozycjaPrawejGranicy = prawaGranica.position.x;
-        }
-        else
-        {
-            Debug.LogError("Mag o nazwie " + gameObject.name + " nie ma przypisanych granic w Inspektorze!");
-        }
     }
 
     void Update()
     {
-        if (playerTarget == null || rb == null) return;
+        if (playerTarget == null || rb == null || isAttacking) return;
 
+        // Sprawdzenie czy gracz ¿yje
         PlayerHealth playerHealth = playerTarget.GetComponent<PlayerHealth>();
-        if (playerHealth != null && playerHealth.isDead)
-        {
-            StopMoving();
-            return;
-        }
+        if (playerHealth != null && playerHealth.isDead) { StopMoving(); return; }
 
+        // Sprawdzenie czy Król ¿yje
         if (GetComponent<EnemyHealth>() != null && GetComponent<EnemyHealth>().currentHealth <= 0) return;
 
         float distanceToPlayer = Vector2.Distance(transform.position, playerTarget.position);
@@ -74,10 +56,9 @@ public class BanditAI : MonoBehaviour
             {
                 if (Time.time >= nextAttackTime)
                 {
-                    AttackPlayer();
-                    nextAttackTime = Time.time + attackCooldown;
+                    StartCoroutine(BossAttackCombo());
                 }
-                else if (!isAttacking)
+                else
                 {
                     StopMoving();
                 }
@@ -93,61 +74,77 @@ public class BanditAI : MonoBehaviour
         }
     }
 
-    void AttackPlayer()
+    IEnumerator BossAttackCombo()
     {
         isAttacking = true;
         StopMoving();
-        anim.SetTrigger("Attack");
-        Invoke("DealDamage", 0.4f);
-        Invoke("ResetAttack", attackCooldown);
+
+        if (comboCount < 2)
+        {
+            // --- SZYBKI ATAK (1 serce/he³m) ---
+            anim.SetTrigger("Attack");
+            yield return new WaitForSeconds(0.4f); // Czekamy na moment uderzenia
+            DealDamage(1); // PRZEKAZUJEMY 1 pkt obra¿eñ
+
+            comboCount++;
+            nextAttackTime = Time.time + timeBetweenComboAttacks;
+        }
+        else
+        {
+            // --- MOCNY ATAK ---
+            anim.SetTrigger("HeavyAttack");
+            yield return new WaitForSeconds(0.6f); // moment uderzenia
+            DealDamage(2); // <--- TUTAJ wpisujemy 2, ¿eby zabraæ 2 punkty ¿ycia
+
+            comboCount = 0;
+            nextAttackTime = Time.time + heavyAttackCooldown;
+        }
+
+        isAttacking = false;
     }
 
-    void DealDamage()
+    void DealDamage(int damage) // "damage" to nasza liczba (1 lub 2)
     {
         if (attackPoint == null) return;
 
         Collider2D[] hitPlayers = Physics2D.OverlapCircleAll(attackPoint.position, attackArea, playerLayer);
+
         foreach (Collider2D playerCollider in hitPlayers)
         {
             PlayerHealth health = playerCollider.GetComponent<PlayerHealth>();
-            if (health != null) health.TakeDamage(1);
+
+            if (health != null)
+            {
+                health.TakeDamage(damage); // Zabieramy tyle, ile przekaza³o Combo!
+            }
         }
     }
 
-    void ResetAttack() { isAttacking = false; }
-
+    // --- Reszta funkcji (Patrol, Chase, StopMoving) kopiujesz z BanditAI ---
     void StopMoving()
     {
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
         anim.SetInteger("AnimState", 0);
     }
 
-    // --- POPRAWIONY PATROL ---
     void Patrol()
     {
-        // Sprawdzamy zapamiÄ™tane liczby (floaty), a nie pozycjÄ™ transformÃ³w
-        if (idzieWPrawo && transform.position.x >= pozycjaPrawejGranicy) idzieWPrawo = false;
-        else if (!idzieWPrawo && transform.position.x <= pozycjaLewejGranicy) idzieWPrawo = true;
-
+        if (idzieWPrawo && transform.position.x >= prawaGranica.position.x) idzieWPrawo = false;
+        else if (!idzieWPrawo && transform.position.x <= lewaGranica.position.x) idzieWPrawo = true;
         transform.localScale = idzieWPrawo ? new Vector3(1, 1, 1) : new Vector3(-1, 1, 1);
         rb.linearVelocity = new Vector2((idzieWPrawo ? 1f : -1f) * walkSpeed, rb.linearVelocity.y);
         anim.SetInteger("AnimState", 1);
     }
 
-    // --- POPRAWIONA POGOÅƒ ---
     void ChasePlayer()
     {
-        if (isAttacking) return;
         float direction = (playerTarget.position.x > transform.position.x) ? 1f : -1f;
-
-        // Tutaj teÅ¼ sprawdzamy zapamiÄ™tane granice
-        if ((direction > 0 && transform.position.x >= pozycjaPrawejGranicy) ||
-            (direction < 0 && transform.position.x <= pozycjaLewejGranicy))
+        if ((direction > 0 && transform.position.x >= prawaGranica.position.x) ||
+            (direction < 0 && transform.position.x <= lewaGranica.position.x))
         {
             StopMoving();
             return;
         }
-
         transform.localScale = (direction > 0) ? new Vector3(1, 1, 1) : new Vector3(-1, 1, 1);
         rb.linearVelocity = new Vector2(direction * chaseSpeed, rb.linearVelocity.y);
         anim.SetInteger("AnimState", 1);
