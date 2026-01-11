@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -7,51 +8,80 @@ public class DialogueManager : MonoBehaviour
     public GameObject player;
 
     private bool isDialogueActive = false;
-    private GameObject currentDialogueUI;
+    private List<GameObject> dialogueQueue = new List<GameObject>();
+    private int currentIndex = 0;
     private GameObject currentBoss;
 
     void Awake() { Instance = this; }
 
-    public void StartDialogue(GameObject dialogueUI, GameObject bossObject = null)
+    // Zmieniamy funkcjê, ¿eby przyjmowa³a listê dymków
+    public void StartDialogueSequence(List<GameObject> sequence, GameObject bossObject = null)
     {
-        isDialogueActive = true;
-        currentDialogueUI = dialogueUI;
+        dialogueQueue = sequence;
+        currentIndex = 0;
         currentBoss = bossObject;
+        isDialogueActive = true;
 
-        if (currentDialogueUI != null) currentDialogueUI.SetActive(true);
-
-        // Blokada ruchu i walki gracza
+        // Blokada gracza
         if (player != null && player.GetComponent<PlayerMovement>() != null)
             player.GetComponent<PlayerMovement>().enabled = false;
 
-        // Blokada AI Bossa
         if (currentBoss != null && currentBoss.GetComponent<KingBossAI>() != null)
+        {
             currentBoss.GetComponent<KingBossAI>().enabled = false;
+            // Dodatkowo zatrzymajmy go w miejscu, ¿eby nie "œlizga³ siê" podczas rozmowy
+            Rigidbody2D bossRb = currentBoss.GetComponent<Rigidbody2D>();
+            if (bossRb != null) bossRb.linearVelocity = Vector2.zero;
+        }
+
+        ShowCurrentDialogue();
     }
 
     void Update()
     {
-        // Powrót do LPM (Lewy Przycisk Myszy)
-        if (isDialogueActive)
+        if (isDialogueActive && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            if (Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                EndDialogue();
-            }
+            NextDialogue();
+        }
+    }
+
+    void ShowCurrentDialogue()
+    {
+        // Wy³¹czamy wszystkie dymki w kolejce
+        foreach (var obj in dialogueQueue) obj.SetActive(false);
+
+        // W³¹czamy tylko ten aktualny
+        if (currentIndex < dialogueQueue.Count)
+        {
+            dialogueQueue[currentIndex].SetActive(true);
+        }
+    }
+
+    void NextDialogue()
+    {
+        currentIndex++;
+        if (currentIndex < dialogueQueue.Count)
+        {
+            ShowCurrentDialogue();
+        }
+        else
+        {
+            EndDialogue();
         }
     }
 
     void EndDialogue()
     {
         isDialogueActive = false;
-        if (currentDialogueUI != null) currentDialogueUI.SetActive(false);
+        foreach (var obj in dialogueQueue) obj.SetActive(false);
 
-        // Odblokowanie gracza
         if (player != null && player.GetComponent<PlayerMovement>() != null)
             player.GetComponent<PlayerMovement>().enabled = true;
 
-        // Odblokowanie AI Bossa
         if (currentBoss != null && currentBoss.GetComponent<KingBossAI>() != null)
+        {
             currentBoss.GetComponent<KingBossAI>().enabled = true;
+        }
+
     }
 }

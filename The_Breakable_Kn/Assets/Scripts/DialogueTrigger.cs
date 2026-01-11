@@ -1,8 +1,9 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class DialogueTrigger : MonoBehaviour
 {
-    public GameObject myDialogueUI; // Tu przeci¹gniesz swój BossDialogueText z Canvasa
+    public List<GameObject> dialogueSequence; // Lista dymków w kolejnoœci
     public bool triggerOnStart = true;
 
     void Start()
@@ -15,6 +16,7 @@ public class DialogueTrigger : MonoBehaviour
 
     public void TriggerDialogue()
     {
-        DialogueManager.Instance.StartDialogue(myDialogueUI, gameObject);
+        if (DialogueManager.Instance != null)
+            DialogueManager.Instance.StartDialogueSequence(dialogueSequence, gameObject);
     }
 }

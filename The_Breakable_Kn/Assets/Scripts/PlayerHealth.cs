@@ -6,12 +6,13 @@ using UnityEngine.SceneManagement;
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Statystyki Startowe")]
-    public int heartHealth = 2;
-    public int armorPoints = 0;
+    public static int heartHealth = 2;
+    // Zmienna statyczna - bêdzie pamiêtaæ wartoœæ miêdzy scenami
+    public static int armorPoints = 0;
 
-    // Zmienione na public, ¿eby skrypt he³mu widzia³ te limity
-    [HideInInspector] public int maxHeartHealth = 2;
-    [HideInInspector] public int maxArmorPoints = 3;
+    [Header("Limity")]
+    public int maxHeartHealth = 2;
+    public int maxArmorPoints = 3;
 
     public bool isDead = false;
 
@@ -33,24 +34,15 @@ public class PlayerHealth : MonoBehaviour
     void Start()
     {
         heartHealth = Mathf.Clamp(heartHealth, 0, maxHeartHealth);
+        // Synchronizacja pancerza z limitem na starcie sceny
         armorPoints = Mathf.Clamp(armorPoints, 0, maxArmorPoints);
         UpdateUI();
-    }
-
-    public void Heal(int amount)
-    {
-        if (isDead) return;
-        if (heartHealth < maxHeartHealth)
-        {
-            heartHealth += amount;
-            heartHealth = Mathf.Clamp(heartHealth, 0, maxHeartHealth);
-            UpdateUI();
-        }
     }
 
     public void AddArmor(int amount)
     {
         if (isDead) return;
+        // Odwo³ujemy siê do statycznego armorPoints
         if (armorPoints < maxArmorPoints)
         {
             armorPoints += amount;
@@ -64,11 +56,13 @@ public class PlayerHealth : MonoBehaviour
         if (isDead) return;
         for (int i = 0; i < damage; i++)
         {
+            // Pancerz chroni pierwszy
             if (armorPoints > 0) armorPoints--;
             else heartHealth--;
         }
         heartHealth = Mathf.Clamp(heartHealth, 0, maxHeartHealth);
         UpdateUI();
+
         if (heartHealth <= 0) Die();
         else if (GetComponent<Animator>() != null) GetComponent<Animator>().SetTrigger("Hurt");
     }
@@ -76,9 +70,11 @@ public class PlayerHealth : MonoBehaviour
     void UpdateUI()
     {
         if (contentContainer == null || heartPrefab == null || helmPrefab == null) return;
+
         foreach (GameObject icon in spawnedIcons) Destroy(icon);
         spawnedIcons.Clear();
 
+        // Wyœwietlanie serca
         if (heartHealth > 0)
         {
             GameObject h = Instantiate(heartPrefab, contentContainer);
@@ -87,6 +83,7 @@ public class PlayerHealth : MonoBehaviour
             spawnedIcons.Add(h);
         }
 
+        // Wyœwietlanie he³mów (u¿ywa statycznego armorPoints)
         for (int i = 0; i < armorPoints; i++)
         {
             GameObject helm = Instantiate(helmPrefab, contentContainer);
@@ -99,31 +96,32 @@ public class PlayerHealth : MonoBehaviour
         if (isDead) return;
         isDead = true;
         if (GetComponent<Animator>() != null) GetComponent<Animator>().SetTrigger("Death");
+        // Blokujemy ruch
         if (GetComponent<PlayerMovement>() != null) GetComponent<PlayerMovement>().enabled = false;
         if (gameOverScreen != null) { gameOverScreen.SetActive(true); Invoke("ShowButton", 5f); }
     }
 
     void ShowButton() { if (restartButton != null) restartButton.SetActive(true); }
-    public void RestartGame() { SceneManager.LoadScene(SceneManager.GetActiveScene().name); }
+    public void RestartGame() {
+
+        armorPoints = 0;
+        heartHealth = 2;
+
+        SceneManager.LoadScene("Start_Scene"); 
+    }
 
     public void Win()
     {
-        // U¿ywamy tych samych obiektów co przy œmierci (gameOverScreen to Twój PlayerHUD)
         if (gameOverScreen != null)
         {
             gameOverScreen.SetActive(true);
-
-            // Szukamy tekstu w PlayerHUD i zmieniamy go na z³ote zwyciêstwo
             TMPro.TextMeshProUGUI statusText = gameOverScreen.GetComponentInChildren<TMPro.TextMeshProUGUI>();
             if (statusText != null)
             {
-                statusText.text = "ZAJEBA£EŒ SKURWYSYNA!";
-                statusText.color = new Color(1f, 0.84f, 0f); // Z³oty kolor
+                statusText.text = "KRÓLESTWO WYZWOLONE!";
+                statusText.color = new Color(1f, 0.84f, 0f);
             }
-
-            // Pokazujemy przycisk restartu
             Invoke("ShowButton", 2f);
         }
     }
-
 }

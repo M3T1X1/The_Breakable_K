@@ -12,8 +12,9 @@ public class HealthPickup : MonoBehaviour
 
             if (playerHealth != null)
             {
-                // Teraz ju¿ widzi maxArmorPoints!
-                if (playerHealth.armorPoints < playerHealth.maxArmorPoints)
+                // UWAGA: armorPoints jest statyczne, wiêc PlayerHealth.armorPoints
+                // maxArmorPoints NIE jest statyczne, wiêc playerHealth.maxArmorPoints
+                if (PlayerHealth.armorPoints < playerHealth.maxArmorPoints)
                 {
                     playerHealth.AddArmor(amount);
                     Destroy(gameObject);
