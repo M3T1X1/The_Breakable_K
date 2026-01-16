@@ -14,7 +14,6 @@ public class DialogueManager : MonoBehaviour
 
     void Awake() { Instance = this; }
 
-    // Zmieniamy funkcjê, ¿eby przyjmowa³a listê dymków
     public void StartDialogueSequence(List<GameObject> sequence, GameObject bossObject = null)
     {
         dialogueQueue = sequence;
@@ -22,14 +21,12 @@ public class DialogueManager : MonoBehaviour
         currentBoss = bossObject;
         isDialogueActive = true;
 
-        // Blokada gracza
         if (player != null && player.GetComponent<PlayerMovement>() != null)
             player.GetComponent<PlayerMovement>().enabled = false;
 
         if (currentBoss != null && currentBoss.GetComponent<KingBossAI>() != null)
         {
             currentBoss.GetComponent<KingBossAI>().enabled = false;
-            // Dodatkowo zatrzymajmy go w miejscu, ¿eby nie "œlizga³ siê" podczas rozmowy
             Rigidbody2D bossRb = currentBoss.GetComponent<Rigidbody2D>();
             if (bossRb != null) bossRb.linearVelocity = Vector2.zero;
         }
@@ -47,10 +44,8 @@ public class DialogueManager : MonoBehaviour
 
     void ShowCurrentDialogue()
     {
-        // Wy³¹czamy wszystkie dymki w kolejce
         foreach (var obj in dialogueQueue) obj.SetActive(false);
 
-        // W³¹czamy tylko ten aktualny
         if (currentIndex < dialogueQueue.Count)
         {
             dialogueQueue[currentIndex].SetActive(true);

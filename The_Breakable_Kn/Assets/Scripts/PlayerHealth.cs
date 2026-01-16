@@ -7,7 +7,6 @@ public class PlayerHealth : MonoBehaviour
 {
     [Header("Statystyki Startowe")]
     public static int heartHealth = 2;
-    // Zmienna statyczna - bêdzie pamiêtaæ wartoœæ miêdzy scenami
     public static int armorPoints = 0;
 
     [Header("Limity")]
@@ -34,7 +33,6 @@ public class PlayerHealth : MonoBehaviour
     void Start()
     {
         heartHealth = Mathf.Clamp(heartHealth, 0, maxHeartHealth);
-        // Synchronizacja pancerza z limitem na starcie sceny
         armorPoints = Mathf.Clamp(armorPoints, 0, maxArmorPoints);
         UpdateUI();
     }
@@ -42,7 +40,6 @@ public class PlayerHealth : MonoBehaviour
     public void AddArmor(int amount)
     {
         if (isDead) return;
-        // Odwo³ujemy siê do statycznego armorPoints
         if (armorPoints < maxArmorPoints)
         {
             armorPoints += amount;
@@ -56,7 +53,6 @@ public class PlayerHealth : MonoBehaviour
         if (isDead) return;
         for (int i = 0; i < damage; i++)
         {
-            // Pancerz chroni pierwszy
             if (armorPoints > 0) armorPoints--;
             else heartHealth--;
         }
@@ -74,7 +70,6 @@ public class PlayerHealth : MonoBehaviour
         foreach (GameObject icon in spawnedIcons) Destroy(icon);
         spawnedIcons.Clear();
 
-        // Wyœwietlanie serca
         if (heartHealth > 0)
         {
             GameObject h = Instantiate(heartPrefab, contentContainer);
@@ -83,7 +78,6 @@ public class PlayerHealth : MonoBehaviour
             spawnedIcons.Add(h);
         }
 
-        // Wyœwietlanie he³mów (u¿ywa statycznego armorPoints)
         for (int i = 0; i < armorPoints; i++)
         {
             GameObject helm = Instantiate(helmPrefab, contentContainer);
@@ -96,7 +90,6 @@ public class PlayerHealth : MonoBehaviour
         if (isDead) return;
         isDead = true;
         if (GetComponent<Animator>() != null) GetComponent<Animator>().SetTrigger("Death");
-        // Blokujemy ruch
         if (GetComponent<PlayerMovement>() != null) GetComponent<PlayerMovement>().enabled = false;
         if (gameOverScreen != null) { gameOverScreen.SetActive(true); Invoke("ShowButton", 5f); }
     }

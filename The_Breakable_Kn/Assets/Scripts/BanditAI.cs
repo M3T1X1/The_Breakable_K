@@ -39,9 +39,7 @@ public class BanditAI : MonoBehaviour
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null) playerTarget = player.transform;
 
-        // --- KLUCZOWA POPRAWKA ---
-        // Zapamiętujemy pozycję X granic w skali świata na samym początku.
-        // Nawet jeśli granice będą się ruszać z Magiem, te liczby zostaną stałe.
+       
         if (lewaGranica != null && prawaGranica != null)
         {
             pozycjaLewejGranicy = lewaGranica.position.x;
@@ -66,9 +64,14 @@ public class BanditAI : MonoBehaviour
 
         if (GetComponent<EnemyHealth>() != null && GetComponent<EnemyHealth>().currentHealth <= 0) return;
 
+        // 1. Obliczamy odległość ogólną (koło)
         float distanceToPlayer = Vector2.Distance(transform.position, playerTarget.position);
 
-        if (distanceToPlayer <= lookRadius)
+        // Używamy bounds.center zamiast transform.position.y
+        float heightDifference = Mathf.Abs(GetComponent<Collider2D>().bounds.center.y - playerTarget.GetComponent<Collider2D>().bounds.center.y);
+
+        // 3. Dodajemy warunek: Musisz być w zasięgu wzroku ORAZ blisko na wysokość (np. mniej niż 2 jednostki)
+        if (distanceToPlayer <= lookRadius && heightDifference < 1.4f)
         {
             if (distanceToPlayer <= attackRange)
             {
@@ -89,6 +92,7 @@ public class BanditAI : MonoBehaviour
         }
         else
         {
+            // Jeśli jesteś za wysoko lub za daleko, Mag wraca do patrolu
             Patrol();
         }
     }
@@ -122,10 +126,8 @@ public class BanditAI : MonoBehaviour
         anim.SetInteger("AnimState", 0);
     }
 
-    // --- POPRAWIONY PATROL ---
     void Patrol()
     {
-        // Sprawdzamy zapamiętane liczby (floaty), a nie pozycję transformów
         if (idzieWPrawo && transform.position.x >= pozycjaPrawejGranicy) idzieWPrawo = false;
         else if (!idzieWPrawo && transform.position.x <= pozycjaLewejGranicy) idzieWPrawo = true;
 
@@ -134,13 +136,11 @@ public class BanditAI : MonoBehaviour
         anim.SetInteger("AnimState", 1);
     }
 
-    // --- POPRAWIONA POGOŃ ---
     void ChasePlayer()
     {
         if (isAttacking) return;
         float direction = (playerTarget.position.x > transform.position.x) ? 1f : -1f;
 
-        // Tutaj też sprawdzamy zapamiętane granice
         if ((direction > 0 && transform.position.x >= pozycjaPrawejGranicy) ||
             (direction < 0 && transform.position.x <= pozycjaLewejGranicy))
         {

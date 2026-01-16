@@ -9,12 +9,12 @@ public class KingBossAI : MonoBehaviour
 
     [Header("Ustawienia walki")]
     public float lookRadius = 7f;
-    public float attackRange = 2.5f; // Król ma wiêkszy miecz, wiêc zasiêg wiêkszy
-    public float timeBetweenComboAttacks = 0.6f; // Szybkie ciosy
-    public float heavyAttackCooldown = 2.5f;    // Odpoczynek po mocnym ciosie
+    public float attackRange = 2.5f; 
+    public float timeBetweenComboAttacks = 0.6f; 
+    public float heavyAttackCooldown = 2.5f;
 
     public Transform attackPoint;
-    public float attackArea = 1.0f;  // Wiêkszy obszar ciosu dla bosa
+    public float attackArea = 1.0f;  
     public LayerMask playerLayer;
 
     [Header("Granice")]
@@ -27,7 +27,7 @@ public class KingBossAI : MonoBehaviour
     private bool isAttacking = false;
     private bool idzieWPrawo = true;
     private float nextAttackTime = 0f;
-    private int comboCount = 0; // Licznik ciosów
+    private int comboCount = 0;
 
     void Start()
     {
@@ -41,11 +41,9 @@ public class KingBossAI : MonoBehaviour
     {
         if (playerTarget == null || rb == null || isAttacking) return;
 
-        // Sprawdzenie czy gracz ¿yje
         PlayerHealth playerHealth = playerTarget.GetComponent<PlayerHealth>();
         if (playerHealth != null && playerHealth.isDead) { StopMoving(); return; }
 
-        // Sprawdzenie czy Król ¿yje
         if (GetComponent<EnemyHealth>() != null && GetComponent<EnemyHealth>().currentHealth <= 0) return;
 
         float distanceToPlayer = Vector2.Distance(transform.position, playerTarget.position);
@@ -81,20 +79,18 @@ public class KingBossAI : MonoBehaviour
 
         if (comboCount < 2)
         {
-            // --- SZYBKI ATAK (1 serce/he³m) ---
             anim.SetTrigger("Attack");
-            yield return new WaitForSeconds(0.4f); // Czekamy na moment uderzenia
-            DealDamage(1); // PRZEKAZUJEMY 1 pkt obra¿eñ
+            yield return new WaitForSeconds(0.4f); 
+            DealDamage(1);
 
             comboCount++;
             nextAttackTime = Time.time + timeBetweenComboAttacks;
         }
         else
         {
-            // --- MOCNY ATAK ---
             anim.SetTrigger("HeavyAttack");
-            yield return new WaitForSeconds(0.6f); // moment uderzenia
-            DealDamage(2); // <--- TUTAJ wpisujemy 2, ¿eby zabraæ 2 punkty ¿ycia
+            yield return new WaitForSeconds(0.6f);
+            DealDamage(2); 
 
             comboCount = 0;
             nextAttackTime = Time.time + heavyAttackCooldown;
@@ -103,7 +99,7 @@ public class KingBossAI : MonoBehaviour
         isAttacking = false;
     }
 
-    void DealDamage(int damage) // "damage" to nasza liczba (1 lub 2)
+    void DealDamage(int damage) 
     {
         if (attackPoint == null) return;
 
@@ -115,12 +111,11 @@ public class KingBossAI : MonoBehaviour
 
             if (health != null)
             {
-                health.TakeDamage(damage); // Zabieramy tyle, ile przekaza³o Combo!
+                health.TakeDamage(damage); 
             }
         }
     }
 
-    // --- Reszta funkcji (Patrol, Chase, StopMoving) kopiujesz z BanditAI ---
     void StopMoving()
     {
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);

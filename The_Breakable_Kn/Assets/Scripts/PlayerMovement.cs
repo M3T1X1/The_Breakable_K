@@ -3,26 +3,22 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    // --- USTAWIENIA RUCHU ---
     [Header("Ruch i Fizyka")]
     public float runSpeed = 5f;
     public float jumpForce = 8f;
 
-    // --- SYSTEM WALKI (NOWE ZMIENNE) ---
     [Header("Walka")]
-    public Transform attackPoint;      // Przeciągnij tu obiekt AttackPoint
-    public float attackRange = 0.5f;   // Zasięg uderzenia (widoczny jako czerwona kula)
-    public LayerMask enemyLayers;      // Wybierz warstwę "Enemy"
-    public int attackDamage = 20;      // Ile HP zabierasz magowi
-    public float attackRate = 2f; // Ile ataków na sekundę (np. 2)
-    private float nextAttackTime = 0f; // Kiedy będzie można zaatakować kolejny raz
+    public Transform attackPoint;      
+    public float attackRange = 0.5f;   
+    public LayerMask enemyLayers;      
+    public int attackDamage = 20;     
+    public float attackRate = 2f; 
+    private float nextAttackTime = 0f; 
 
-    // --- KOMPONENTY ---
     private Rigidbody2D rb;
     private BoxCollider2D coll;
     private Animator anim;
 
-    // --- ZMIENNE LOGICZNE ---
     private Vector2 moveInput;
     private bool jumpPressed;
     private bool facingRight = true;
@@ -44,7 +40,6 @@ public class PlayerMovement : MonoBehaviour
         HandleJumping();
     }
 
-    // --- SYSTEM WEJŚCIA (INPUT SYSTEM) ---
     public void OnMove(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
@@ -68,7 +63,6 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // --- LOGIKA RUCHU ---
     private void HandleHorizontalMovement()
     {
         if (GetComponent<PlayerHealth>() != null && GetComponent<PlayerHealth>().isDead)
@@ -108,10 +102,8 @@ public class PlayerMovement : MonoBehaviour
         jumpPressed = false;
     }
 
-    // --- LOGIKA WALKI (GŁÓWNA FUNKCJA) ---
     private void Attack()
     {
-        // To zabezpieczenie musi tu zostać, aby uniknąć błędów w konsoli
         if (attackPoint == null)
         {
             return;
@@ -131,7 +123,6 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Rysuje czerwoną kulę w edytorze, żeby łatwiej było ustawić zasięg
     void OnDrawGizmosSelected()
     {
         if (attackPoint == null) return;

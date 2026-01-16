@@ -5,7 +5,7 @@ public class EnemyHealth : MonoBehaviour
     [Header("Statystyki")]
     public int maxHealth = 100;
     public int currentHealth;
-    private bool isDead = false; // To zatrzyma wielokrotne odpalanie animacji œmierci
+    private bool isDead = false; 
 
     [Header("UI")]
     public HealthBar healthBar;
@@ -28,7 +28,6 @@ public class EnemyHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        // Jeœli ju¿ nie ¿yje, natychmiast wychodzimy - to naprawi skakanie przy œmierci
         if (currentHealth <= 0) return;
 
         if (Time.time < lastDamageTime + damageCooldown) return;
@@ -44,7 +43,6 @@ public class EnemyHealth : MonoBehaviour
         }
         else
         {
-            // Wykonaj animacjê oberwania tylko jeœli Król prze¿y³ cios
             if (anim != null) anim.SetTrigger("Hurt");
         }
     }
@@ -69,18 +67,14 @@ public class EnemyHealth : MonoBehaviour
             rb.bodyType = RigidbodyType2D.Static;
         }
 
-        // --- NOWA LOGIKA ZWYCIÊSTWA ---
-        // Sprawdzamy, czy ten wróg nazywa siê KROL
         if (gameObject.name == "Krol")
         {
-            // Szukamy gracza i wywo³ujemy now¹ funkcjê Win()
             PlayerHealth player = Object.FindFirstObjectByType<PlayerHealth>();
             if (player != null)
             {
                 player.Win();
             }
         }
-        // ------------------------------
 
         Destroy(gameObject, 4f);
     }
