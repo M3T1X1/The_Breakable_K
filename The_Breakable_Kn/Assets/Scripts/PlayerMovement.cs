@@ -8,16 +8,17 @@ public class PlayerMovement : MonoBehaviour
     public float jumpForce = 8f;
 
     [Header("Walka")]
-    public Transform attackPoint;      
-    public float attackRange = 0.5f;   
-    public LayerMask enemyLayers;      
-    public int attackDamage = 20;     
-    public float attackRate = 2f; 
-    private float nextAttackTime = 0f; 
+    public Transform attackPoint;
+    public float attackRange = 0.5f;
+    public LayerMask enemyLayers;
+    public int attackDamage = 20;
+    public float attackRate = 2f;
+    private float nextAttackTime = 0f;
 
     private Rigidbody2D rb;
     private BoxCollider2D coll;
     private Animator anim;
+    private PlayerHealth playerHealth; // Referencja do skryptu zdrowia i bonusów
 
     private Vector2 moveInput;
     private bool jumpPressed;
@@ -32,6 +33,7 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         coll = GetComponent<BoxCollider2D>();
         anim = GetComponent<Animator>();
+        playerHealth = GetComponent<PlayerHealth>(); // Pobieramy skrypt zdrowia
     }
 
     void Update()
@@ -54,7 +56,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (!this.enabled) return;
 
-        if (GetComponent<PlayerHealth>() != null && GetComponent<PlayerHealth>().isDead) return;
+        if (playerHealth != null && playerHealth.isDead) return;
 
         if (context.performed && Time.time >= nextAttackTime)
         {
@@ -65,7 +67,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleHorizontalMovement()
     {
-        if (GetComponent<PlayerHealth>() != null && GetComponent<PlayerHealth>().isDead)
+        if (playerHealth != null && playerHealth.isDead)
         {
             rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
             return;
@@ -104,12 +106,19 @@ public class PlayerMovement : MonoBehaviour
 
     private void Attack()
     {
-        if (attackPoint == null)
-        {
-            return;
-        }
+        if (attackPoint == null) return;
 
         anim.SetTrigger("Attack1");
+
+        // --- LOGIKA WZMOCNIONEGO ATAKU ---
+        int currentDamage = attackDamage;
+
+        if (playerHealth != null && playerHealth.swordCharges > 0)
+        {
+            currentDamage = playerHealth.boostedDamage; // U¿ywamy 40 obra¿eñ
+            playerHealth.swordCharges--;               // Zmniejszamy liczbê ³adunków
+            playerHealth.UpdateUI();                  // Odœwie¿amy ikonkê (zmieni cyfrê lub zniknie)
+        }
 
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
 
@@ -118,7 +127,7 @@ public class PlayerMovement : MonoBehaviour
             EnemyHealth enemyHealth = enemy.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
             {
-                enemyHealth.TakeDamage(attackDamage);
+                enemyHealth.TakeDamage(currentDamage); // Zadajemy obliczone obra¿enia
             }
         }
     }
