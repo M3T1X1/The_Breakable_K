@@ -307,12 +307,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50674f4189e738b45acfeb39fed429ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  boostedDamage: 40
+  normalDamage: 20
   maxHeartHealth: 2
   maxArmorPoints: 3
   isDead: 0
   contentContainer: {fileID: 436595353}
   heartPrefab: {fileID: 2403633354985831109, guid: fc0d5d94dcf49fa449552d01d094bcff, type: 3}
   helmPrefab: {fileID: 2801216897392804357, guid: e494a87ecda55504ea5bc6965f9e37bc, type: 3}
+  weaponContainer: {fileID: 0}
+  swordIconPrefab: {fileID: 0}
   fullHeart: {fileID: -6012091124259661834, guid: 5db872250ed86e948b4442e5f76636f2, type: 3}
   halfHeart: {fileID: 1889103503038276631, guid: 87c678a3e03797b4887fe25fd3e81d4b, type: 3}
   endGameScreen: {fileID: 714355066}
@@ -1519,9 +1523,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 717375226}
+  - component: {fileID: 717375228}
   - component: {fileID: 717375225}
   - component: {fileID: 717375224}
   - component: {fileID: 717375223}
+  - component: {fileID: 717375227}
   m_Layer: 5
   m_Name: PlayerHUD
   m_TagString: Untagged
@@ -1613,6 +1619,35 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!225 &717375227
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717375222}
+  m_Enabled: 1
+  m_Alpha: 0.2
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &717375228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717375222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48527b6146ede8745b1f5f03d82411de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HUDFade
+  fadeAlpha: 0.25
+  fadeSpeed: 5
+  minX: -10
+  maxX: -2
+  minY: 2
 --- !u!1 &740244939
 GameObject:
   m_ObjectHideFlags: 0
@@ -2193,9 +2228,10 @@ GameObject:
   - component: {fileID: 1003095722}
   - component: {fileID: 1003095721}
   - component: {fileID: 1003095720}
+  - component: {fileID: 1003095723}
   - component: {fileID: 1003095719}
   m_Layer: 0
-  m_Name: Helm_UI_0
+  m_Name: Helm_lvl0_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2323,6 +2359,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1003095723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003095718}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f44228c2da5f894bb74e38c1fe8c27f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemPersistence
 --- !u!1 &1256082210
 GameObject:
   m_ObjectHideFlags: 0

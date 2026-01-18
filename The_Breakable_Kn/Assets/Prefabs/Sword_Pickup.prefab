@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5248431426473616974}
   - component: {fileID: 9064436108149864394}
   - component: {fileID: 2173164867998146300}
+  - component: {fileID: 7369398681180785204}
   - component: {fileID: 1347768719814127116}
   m_Layer: 0
   m_Name: Sword_Pickup
@@ -105,6 +106,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SwordPickup
   amount: 5
+--- !u!114 &7369398681180785204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6373403011983843884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f44228c2da5f894bb74e38c1fe8c27f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemPersistence
 --- !u!58 &1347768719814127116
 CircleCollider2D:
   m_ObjectHideFlags: 0

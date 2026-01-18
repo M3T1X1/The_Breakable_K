@@ -11,7 +11,7 @@ public class PlayerHealth : MonoBehaviour
     public static int armorPoints = 0;
 
     [Header("Miecz - Bonus")]
-    public int swordCharges = 0; // Ile uderzeñ zosta³o
+    public static int swordCharges = 0; // Ile uderzeñ zosta³o
     public int boostedDamage = 40;
     public int normalDamage = 20;
 
@@ -152,9 +152,16 @@ public class PlayerHealth : MonoBehaviour
 
     public void RestartGame()
     {
+        // WYCZYŒÆ DANE O ZABITYCH WROGACH PRZY PE£NYM RESTARTCIE
+        if (GameManager.instance != null)
+        {
+            GameManager.instance.defeatedEnemies.Clear();
+            GameManager.instance.useSpawnPos = false;
+        }
+
         armorPoints = 0;
         heartHealth = 2;
-        swordCharges = 0; // Resetujemy miecz przy restarcie
+        swordCharges = 0;
         SceneManager.LoadScene("Start_Scene");
     }
 
@@ -192,7 +199,15 @@ public class PlayerHealth : MonoBehaviour
             {
                 statusText.gameObject.SetActive(true);
                 statusText.text = "YOU WIN";
-                statusText.color = new Color(1f, 0.84f, 0f);
+
+                statusText.color = new Color(1f, 0.6f, 0f);
+
+                statusText.outlineColor = new Color(0, 0, 0, 1);
+                statusText.outlineWidth = 0.25f;
+
+                statusText.fontStyle = FontStyles.Bold;
+
+                statusText.ForceMeshUpdate();
             }
 
             Button restartBtn = endGameScreen.GetComponentInChildren<Button>(true);
