@@ -19,7 +19,6 @@ public class PlayerMovement : MonoBehaviour
     private BoxCollider2D coll;
     private Animator anim;
     private PlayerHealth playerHealth;
-    // --- KLUCZOWA POPRAWKA: Deklaracja zmiennej ---
     private SpriteRenderer spriteRenderer;
 
     private Vector2 moveInput;
@@ -36,10 +35,8 @@ public class PlayerMovement : MonoBehaviour
         coll = GetComponent<BoxCollider2D>();
         anim = GetComponent<Animator>();
         playerHealth = GetComponent<PlayerHealth>();
-        // --- KLUCZOWA POPRAWKA: Pobranie komponentu ---
         spriteRenderer = GetComponent<SpriteRenderer>();
 
-        // Automatyczne wykrycie kierunku na starcie na podstawie skali
         facingRight = (transform.localScale.x > 0);
 
         if (GameManager.instance != null && GameManager.instance.useSpawnPos)
@@ -47,15 +44,14 @@ public class PlayerMovement : MonoBehaviour
             rb.bodyType = RigidbodyType2D.Dynamic;
             rb.linearVelocity = Vector2.zero;
             transform.position = GameManager.instance.playerSpawnPos;
-            rb.WakeUp(); // Budzimy fizykê po teleportacji
-            anim.Rebind(); // Resetujemy animatora
+            rb.WakeUp(); 
+            anim.Rebind(); 
             GameManager.instance.useSpawnPos = false;
         }
     }
 
     void Update()
     {
-        // Rêczny odczyt klawiatury - najbardziej niezawodny po zmianie sceny
         float horizontal = 0;
         if (Keyboard.current.dKey.isPressed) horizontal = 1;
         else if (Keyboard.current.aKey.isPressed) horizontal = -1;
@@ -66,7 +62,6 @@ public class PlayerMovement : MonoBehaviour
         HandleJumping();
     }
 
-    // Pozostawiamy dla kompatybilnoœci z Input System, ale Update robi g³ówn¹ robotê
     public void OnMove(InputAction.CallbackContext context) { }
 
     public void OnJump(InputAction.CallbackContext context)
@@ -99,7 +94,6 @@ public class PlayerMovement : MonoBehaviour
         bool isMoving = Mathf.Abs(moveInput.x) > 0.01f;
         anim.SetInteger("AnimState", isMoving ? 1 : 0);
 
-        // Wywo³anie obracania
         if (moveInput.x > 0 && !facingRight) Flip();
         else if (moveInput.x < 0 && facingRight) Flip();
     }
@@ -108,16 +102,13 @@ public class PlayerMovement : MonoBehaviour
     {
         facingRight = !facingRight;
 
-        // Obracamy obrazek
         if (spriteRenderer != null)
         {
             spriteRenderer.flipX = !facingRight;
         }
 
-        // NAPRAWA ATAKU: Przesuwamy punkt ataku na drug¹ stronê
         if (attackPoint != null)
         {
-            // Odwracamy lokaln¹ pozycjê X punktu ataku
             Vector3 newPos = attackPoint.localPosition;
             newPos.x *= -1;
             attackPoint.localPosition = newPos;

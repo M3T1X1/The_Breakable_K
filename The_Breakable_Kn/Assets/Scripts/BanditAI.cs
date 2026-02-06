@@ -20,7 +20,6 @@ public class BanditAI : MonoBehaviour
     public Transform lewaGranica;
     public Transform prawaGranica;
 
-    // --- NOWE ZMIENNE DO ZAPAMIĘTANIA POZYCJI ---
     private float pozycjaLewejGranicy;
     private float pozycjaPrawejGranicy;
 
@@ -64,13 +63,10 @@ public class BanditAI : MonoBehaviour
 
         if (GetComponent<EnemyHealth>() != null && GetComponent<EnemyHealth>().currentHealth <= 0) return;
 
-        // 1. Obliczamy odległość ogólną (koło)
         float distanceToPlayer = Vector2.Distance(transform.position, playerTarget.position);
 
-        // Używamy bounds.center zamiast transform.position.y
         float heightDifference = Mathf.Abs(GetComponent<Collider2D>().bounds.center.y - playerTarget.GetComponent<Collider2D>().bounds.center.y);
 
-        // 3. Dodajemy warunek: Musisz być w zasięgu wzroku ORAZ blisko na wysokość (np. mniej niż 2 jednostki)
         if (distanceToPlayer <= lookRadius && heightDifference < 1.4f)
         {
             if (distanceToPlayer <= attackRange)
@@ -92,7 +88,6 @@ public class BanditAI : MonoBehaviour
         }
         else
         {
-            // Jeśli jesteś za wysoko lub za daleko, Mag wraca do patrolu
             Patrol();
         }
     }

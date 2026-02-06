@@ -14,7 +14,6 @@ public class HealthPickup : MonoBehaviour
             {
                 if (PlayerHealth.armorPoints < playerHealth.maxArmorPoints)
                 {
-                    // ZAPISYWANIE: Informujemy system, ¿e ten przedmiot zosta³ zebrany
                     ItemPersistence persistence = GetComponent<ItemPersistence>();
                     if (persistence != null)
                     {

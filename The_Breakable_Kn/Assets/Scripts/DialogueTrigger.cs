@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class DialogueTrigger : MonoBehaviour
 {
-    public List<GameObject> dialogueSequence; // Lista dymków w kolejnoœci
+    public List<GameObject> dialogueSequence; 
     public bool triggerOnStart = true;
 
     void Start()

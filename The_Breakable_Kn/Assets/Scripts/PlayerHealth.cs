@@ -11,7 +11,7 @@ public class PlayerHealth : MonoBehaviour
     public static int armorPoints = 0;
 
     [Header("Miecz - Bonus")]
-    public static int swordCharges = 0; // Ile uderzeñ zosta³o
+    public static int swordCharges = 0; 
     public int boostedDamage = 40;
     public int normalDamage = 20;
 
@@ -22,13 +22,13 @@ public class PlayerHealth : MonoBehaviour
     public bool isDead = false;
 
     [Header("UI Referencje - Statystyki")]
-    public Transform contentContainer; // Tu s¹ serca i he³my
+    public Transform contentContainer; 
     public GameObject heartPrefab;
     public GameObject helmPrefab;
 
     [Header("UI Referencje - Bonusy")]
-    public Transform weaponContainer; // To Twój WeaponBuff_Container
-    public GameObject swordIconPrefab; // Tu wrzuæ niebieski prefab mieczyka z cyferk¹
+    public Transform weaponContainer; 
+    public GameObject swordIconPrefab; 
 
     [Header("Grafiki")]
     public Sprite fullHeart;
@@ -61,7 +61,6 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    // Nowa funkcja do podnoszenia miecza
     public void AddSwordPower(int charges)
     {
         if (isDead) return;
@@ -86,7 +85,6 @@ public class PlayerHealth : MonoBehaviour
 
     public void UpdateUI()
     {
-        // --- SEKCJA SERC I PANCERZA ---
         if (contentContainer != null && heartPrefab != null && helmPrefab != null)
         {
             foreach (GameObject icon in spawnedIcons) Destroy(icon);
@@ -107,7 +105,6 @@ public class PlayerHealth : MonoBehaviour
             }
         }
 
-        // --- SEKCJA MIECZA (BUFFY) ---
         if (weaponContainer != null && swordIconPrefab != null)
         {
             foreach (GameObject buff in spawnedBuffs) Destroy(buff);
@@ -116,7 +113,7 @@ public class PlayerHealth : MonoBehaviour
             if (swordCharges > 0)
             {
                 GameObject sUI = Instantiate(swordIconPrefab, weaponContainer);
-                sUI.SetActive(true); // Upewniamy siê, ¿e prefab jest widoczny
+                sUI.SetActive(true); 
 
                 TextMeshProUGUI txt = sUI.GetComponentInChildren<TextMeshProUGUI>();
                 if (txt != null) txt.text = swordCharges.ToString();
@@ -152,7 +149,6 @@ public class PlayerHealth : MonoBehaviour
 
     public void RestartGame()
     {
-        // WYCZYŒÆ DANE O ZABITYCH WROGACH PRZY PE£NYM RESTARTCIE
         if (GameManager.instance != null)
         {
             GameManager.instance.defeatedEnemies.Clear();
@@ -171,29 +167,25 @@ public class PlayerHealth : MonoBehaviour
         {
             endGameScreen.SetActive(true);
 
-            // 1. Wy³¹czamy skrypt sterowania
             PlayerMovement movement = GetComponent<PlayerMovement>();
             if (movement != null)
             {
                 movement.enabled = false;
             }
 
-            // 2. NATYCHMIASTOWE ZATRZYMANIE FIZYKI (to naprawi "biegniêcie dalej")
             Rigidbody2D rb = GetComponent<Rigidbody2D>();
             if (rb != null)
             {
-                rb.linearVelocity = Vector2.zero; // Zerujemy prêdkoœæ
-                rb.bodyType = RigidbodyType2D.Kinematic; // Opcjonalnie: blokuje wp³yw innych si³
+                rb.linearVelocity = Vector2.zero; 
+                rb.bodyType = RigidbodyType2D.Kinematic; 
             }
 
-            // 3. Reset animacji do stanu spoczynku (Idle)
             Animator anim = GetComponent<Animator>();
             if (anim != null)
             {
-                anim.SetInteger("AnimState", 0); // Ustawia animacjê na Idle
+                anim.SetInteger("AnimState", 0); 
             }
 
-            // --- Reszta Twojego kodu UI ---
             TextMeshProUGUI statusText = endGameScreen.GetComponentInChildren<TextMeshProUGUI>(true);
             if (statusText != null)
             {

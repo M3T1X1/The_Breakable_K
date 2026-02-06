@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class SwordPickup : MonoBehaviour
 {
-    public int amount = 5; // Ile uderzeñ daje miecz
+    public int amount = 5; 
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -12,16 +12,13 @@ public class SwordPickup : MonoBehaviour
 
             if (playerHealth != null)
             {
-                // ZAPISYWANIE: Informujemy system, ¿e ten miecz zosta³ zebrany
                 ItemPersistence persistence = GetComponent<ItemPersistence>();
                 if (persistence != null)
                 {
                     persistence.MarkAsCollected();
                 }
 
-                // Dodajemy ³adunki miecza
                 playerHealth.AddSwordPower(amount);
-                // Niszczymy mieczyk na ziemi
                 Destroy(gameObject);
             }
         }

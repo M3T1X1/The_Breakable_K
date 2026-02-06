@@ -19,10 +19,9 @@ public class EnemyHealth : MonoBehaviour
 
     void Start()
     {
-        // --- DODAJ TO NA POCZ¥TKU STARTU: ---
         if (GameManager.instance != null && GameManager.instance.defeatedEnemies.Contains(gameObject.name))
         {
-            Destroy(gameObject); // Jeœli ID wroga jest w liœcie trupów - usuñ go od razu
+            Destroy(gameObject);
             return;
         }
 
@@ -59,7 +58,6 @@ public class EnemyHealth : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        // --- DODAJ TO: Zapisz imiê tego wroga jako martwego ---
         if (GameManager.instance != null)
         {
             GameManager.instance.defeatedEnemies.Add(gameObject.name);
